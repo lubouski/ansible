@@ -1,0 +1,9 @@
+- name: Nginx check
+  shell: "curl -IL 192.168.56.10:80"
+  register: nginx_check
+  changed_when: false
+
+- name: Nginx output
+  debug:
+    msg: "Nginx Output - {{(nginx_check.stdout.split(' '))[3]}}"
+

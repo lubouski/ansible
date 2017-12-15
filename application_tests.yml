@@ -1,0 +1,13 @@
+- name: Palybook Application test
+  hosts: localhost
+  connection: localhost
+  become: true
+  tasks:
+    - uri:
+        url: http://127.0.0.1:8080/mnt-lab/
+        return_content: yes
+      register: webpage
+
+    - name: Fail if Lubouski is not in the page content
+      fail:
+      when: "'Lubouski' not in webpage.content"

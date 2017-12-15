@@ -1,0 +1,36 @@
+#
+- name: Playbook1
+  hosts: localhost
+  gather_facts: True
+  tasks:
+    - name: Vagrant module 
+      vag_module:
+        path_to_vagrant: "."
+        state: started
+      register: result
+
+    - debug:
+        msg: "{{ result }}"
+
+    - add_host:
+        name: VM
+        ansible_ssh_host: "{{ result.meta.IP }}"
+        ansible_connection: ssh
+        ansible_ssh_port: "{{ result.meta.Port }}"
+        ansible_ssh_user: "{{ result.meta.Name }}"
+        ansible_ssh_private_key_file: "{{ result.meta.Path_to_key }}"
+      changed_when: false
+      when: result.meta.Status == "running"
+
+    - name: copy content
+      local_action: copy content="{{ vars[item] }}" dest="/home/student/cm/ansible/final-exam/mntlab-exam/variables.json"
+      with_items:
+        - result 
+
+    # - set_fact:
+    #     one_fact: "{{ result.meta.IP }}"
+      
+    # - debug: 
+    #     msg: "{{ one_fact }}"
+
+    

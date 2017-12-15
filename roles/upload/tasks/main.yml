@@ -1,0 +1,20 @@
+#- name: Wait 300 seconds for port 8080 of any IP to close active connections, don't start checking for 10 seconds
+#  wait_for:
+#    host: 192.168.56.10
+#    port: 8080
+#    delay: 50
+#    state: started
+
+- name: Upload war
+  deploy-war:
+    war: "/vagrant/target/mnt-exam.war"
+    username: "admin"
+    password: "password"
+
+- name: restart_tomcat
+  systemd:
+    name: tomcat
+    daemon_reload: yes
+  become: true
+  become_method: sudo
+

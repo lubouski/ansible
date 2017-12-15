@@ -1,0 +1,6 @@
+tomcat_version: 8.0.47
+tomcat_user: tomcat_as
+tomcat_group: tomcat_as_group
+catalina_home: "/opt/tomcat/{{ tomcat_version }}"
+
+

@@ -1,0 +1,31 @@
+- name: Playbook1
+  hosts: localhost
+  tasks:
+    - name: Vagrant module 
+      vag_module:
+        path_to_vagrant: "/home/student/cm/ansible/day-3"
+        state: started
+      register: result
+
+    - debug:
+        msg: "{{ result }}"
+
+    - add_host:
+        name: VM
+        ansible_ssh_host: "{{ result.meta.IP }}"
+        ansible_connection: ssh
+        ansible_ssh_port: "{{ result.meta.Port }}"
+        ansible_ssh_user: "{{ result.meta.Name }}"
+        ansible_ssh_private_key_file: /home/student/cm/ansible/final-exam/mntlab-exam
+      changed_when: false
+      when: result.meta.Status == "running"
+
+- name: Playbook2
+  hosts: VM
+  become: true
+  roles: 
+    - java
+    - { role: tomcat, tomcat_version: 8.0.47 }
+    - nginx 
+
+  

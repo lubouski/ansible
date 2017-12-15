@@ -1,0 +1,5 @@
+- name: Java install
+  yum:
+    name:  "java-{{ java_version }}-openjdk"
+  become: true
+  become_method: sudo

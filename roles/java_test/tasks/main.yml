@@ -1,0 +1,9 @@
+- name: Java check
+  shell: java -version
+  register: check_java
+  changed_when: false
+
+- name: Debug Java output
+  debug:
+    msg: "Third Java - {{ check_java.stderr }}"
+

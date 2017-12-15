@@ -1,0 +1,27 @@
+- name: Playbook Provision
+  hosts: localhost
+  become: true
+  tasks:
+    - include_vars:
+        file: variables.json
+        name: result
+    - add_host:
+        name: VM
+        ansible_ssh_host: "{{ result.meta.IP }}"
+        ansible_connection: ssh
+        ansible_ssh_port: "{{ result.meta.Port }}"
+        ansible_ssh_user: "{{ result.meta.Name }}"
+        ansible_ssh_private_key_file: "{{ result.meta.Path_to_key }}"
+      changed_when: false
+      when: result.meta.Status == "running"
+
+    - debug:
+        msg: "{{ result.meta.Path_to_key }}"
+
+- name: Playbook2
+  hosts: VM
+  become: true
+  roles: 
+    - java
+    - { role: tomcat, tomcat_version: 8.0.47 }
+    - nginx 

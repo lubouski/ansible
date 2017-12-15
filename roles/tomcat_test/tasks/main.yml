@@ -1,0 +1,15 @@
+- name: Wait 300 seconds for port 8080 of any IP to close active connections, don't start checking for 10 seconds
+  wait_for:
+    host: 192.168.56.10
+    port: 8080
+    delay: 10
+    state: started
+
+- name: Tomcat check
+  shell: "curl -IL 192.168.56.10:8080"
+  register: tomcat_check
+  changed_when: false
+
+- name: Debug Tomcat output
+  debug:
+    msg: "Tomcat Output - {{(tomcat_check.stdout.split(' '))[1]}}"

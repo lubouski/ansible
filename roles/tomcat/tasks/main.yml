@@ -1,0 +1,133 @@
+- name: Create group
+  group: 
+    name: "{{ tomcat_group }}" 
+    state: present 
+  become: true 
+  become_method: sudo
+
+
+- name: Create user
+  user: 
+    name: "{{ tomcat_user }}" 
+    shell: /bin/bash 
+    groups: "{{ tomcat_group }}" 
+    append: yes 
+  become: true 
+  become_method: sudo
+
+- name: Stat tomcat for directory
+  stat: "path={{ catalina_home }}"
+  register: tomcat_st
+
+- name: Create tomcat directory
+  file:
+    path: "{{ catalina_home }}"
+    state: directory
+    mode: 0755
+    recurse: yes
+  when: not tomcat_st.stat.exists
+  become: true
+  become_method: sudo
+
+- name: Stat tomcat for directory
+  stat: "path={{ catalina_home }}/{{tomcat_version}}.tar.gz"
+  register: download_st
+
+- name: Download Tomcat
+  get_url:
+    #url: "ftp://ftp.byfly.by/pub/apache.org/tomcat/tomcat-8/v{{ tomcat_version}}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz"
+    url: "{{ Tomcat_link }}"
+    dest: "{{ catalina_home }}/{{tomcat_version}}.tar.gz"
+    mode: 755
+  when: not download_st.stat.exists  
+  become: true
+  become_method: sudo
+
+- name: Stat tomcat
+  stat: "path={{ catalina_home }}/bin"
+  register: tomcat_stat
+
+- name: Unarchive
+  unarchive:
+    src: "{{ catalina_home }}/{{ tomcat_version }}.tar.gz"
+    dest: "{{ catalina_home }}"
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+  when: not tomcat_stat.stat.exists
+  become: true
+  become_method: sudo
+
+- name: File Permissions Variable
+  stat: path=/opt/tomcat
+  register: st
+
+- name: Assign tomcat bin to users
+  file:
+    path: /opt/tomcat
+    state: directory
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: 0755
+    recurse: yes
+  when: st.stat.pw_name == 'root'
+  become: true
+  become_method: sudo
+
+- name: Tomcat logs. creating a symlink
+  file:
+    src: "{{ catalina_home }}/logs" 
+    dest: /var/log/tomcat
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    state: link
+    force: yes
+  become: true
+  become_method: sudo
+
+- name: Stat tomcat for directory
+  stat: path=/var/lib/tomcat/webapps/
+  register: deploy_st
+
+- name: Create Webapps directory
+  file:
+    path: /var/lib/tomcat/webapps/
+    state: directory
+    mode: 0777
+    recurse: yes
+  when: not deploy_st.stat.exists
+  become: true
+  become_method: sudo
+
+- name: Copy tomcat-users
+  template:
+    src: tomcat-users.xml
+    dest: "{{ catalina_home }}/conf/tomcat-users.xml"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: 0755
+  #notify: restart_tomcat
+  become: true
+  become_method: sudo
+
+- name: Copy with template service file
+  template:
+    src: tomcat.service
+    dest: /etc/systemd/system
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: 0755
+  notify: restart_tomcat
+  become: true
+  become_method: sudo 
+
+- name: Starting Tomcat service
+  service:
+    name: tomcat 
+    enabled: yes
+    state: started
+  become: true
+  become_method: sudo
+
+
+
+
